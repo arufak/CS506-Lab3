@@ -9,7 +9,7 @@ install:
 
 # Run the Flask application
 run:
-	FLASK_APP=$(FLASK_APP) FLASK_ENV=development ./$(VENV)/bin/flask run --port 3000
+	set FLASK_APP=app.py && set FLASK_ENV=development && venv\Scripts\flask run --port 3000
 
 # Clean up virtual environment
 clean:

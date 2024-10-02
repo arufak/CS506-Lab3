@@ -3,11 +3,26 @@ from PIL import Image
 
 # Function to load and preprocess the image
 def load_image(image_path):
-    raise NotImplementedError('You need to implement this function')
+    # Load the image using Pillow
+    img = Image.open(image_path)
+    # Convert the image to a NumPy array
+    img_np = np.array(img)
+    return img_np
 
 # Function to perform SVD on a single channel of the image matrix
 def compress_channel_svd(channel_matrix, rank):
-    raise NotImplementedError('You need to implement this function')
+    # Perform SVD on the channel matrix
+    U, S, Vt = np.linalg.svd(channel_matrix, full_matrices=False)
+    
+    # Keep only the top 'rank' singular values
+    U_reduced = U[:, :rank]
+    S_reduced = np.diag(S[:rank])
+    Vt_reduced = Vt[:rank, :]
+    
+    # Reconstruct the compressed channel matrix
+    compressed_channel = np.dot(U_reduced, np.dot(S_reduced, Vt_reduced))
+    
+    return compressed_channel
 
 # Function to perform SVD for image compression
 def image_compression_svd(image_np, rank):
@@ -53,13 +68,24 @@ def save_result(original_image_np, quantized_image_np, output_path):
     
 if __name__ == '__main__':
     # Load and process the image
-    image_path = 'favorite_image.png'  
-    output_path = 'compressed_image.png'  
+    image_path = 'examples/favorite_image.png'  
+    output_path_template = 'examples/compressed_image_rank_{}.png'  # Template for output paths
     image_np = load_image(image_path)
 
-    # Perform image quantization using SVD
-    rank = 8  # Rank for SVD, you may change this to experiment
-    quantized_image_np = image_compression_svd(image_np, rank)
+    # List of different rank values to experiment with
+    ranks = [8, 10, 20, 50, 100]  # You can add more values as you like
+    
+    for rank in ranks:
+        # Perform image quantization using SVD
+        quantized_image_np = image_compression_svd(image_np, rank)
 
-    # Save the original and quantized images side by side
-    save_result(image_np, quantized_image_np, output_path)
+        # Save the original and quantized images side by side with the rank in the filename
+        output_path = output_path_template.format(rank)
+        save_result(image_np, quantized_image_np, output_path)
+        
+        print(f"Compressed image with rank {rank} saved to {output_path}")
+
+# To run:
+# set FLASK_APP=app.py
+# set FLASK_ENV=development
+# venv\Scripts\flask run --port 3000
